@@ -85,7 +85,7 @@ class FlightDataProcessor:
                     # Check which columns actually exist in the file to avoid errors
                     try:
                         file_cols = pd.read_csv(filepath, nrows=0).columns.tolist()
-                        cols_present = [col for col in cols_to_read_for_file if col in file_cols]
+                        cols_present     = [col for col in cols_to_read_for_file if col in file_cols]
                         if len(cols_present) < len(cols_to_read_for_file):
                             missing_cols = set(cols_to_read_for_file) - set(cols_present)
                             print(f"  Warning: Columns not found in {filename}: {missing_cols}. Will proceed without them.")
@@ -131,12 +131,12 @@ class FlightDataProcessor:
 
         # Remove canceled flights
         # Important: I am Assuming 'Cancelled' == 1.0
-        cancelled_count = 0
+        cancelled_count     = 0
         if 'Cancelled' in df.columns:
             # Ensure Cancelled is numeric, coercing errors
             df['Cancelled'] = pd.to_numeric(df['Cancelled'], errors='coerce')
             cancelled_count = df['Cancelled'].sum() # Sum works correctly after fillna
-            df = df[df['Cancelled'] != 1.0]
+            df              = df[df['Cancelled'] != 1.0]
             print(f"Removed {cancelled_count:.0f} cancelled flights.")
         else:
             print("Warning: 'Cancelled' column not found, skipping cancellation filter.")
@@ -150,9 +150,9 @@ class FlightDataProcessor:
         # Ensure key columns actually exist before trying to dropna
         key_cols_present = [col for col in key_cols_for_nan if col in df.columns]
 
-        rows_before_nan = len(df)
+        rows_before_nan  = len(df)
         df.dropna(subset=key_cols_present, inplace=True)
-        rows_after_nan = len(df)
+        rows_after_nan   = len(df)
         print(f"Removed {rows_before_nan - rows_after_nan} rows with missing values in key columns: {key_cols_present}.")
 
         # Convert delay columns and ElapsedTime to numeric, handling potential errors
@@ -189,10 +189,10 @@ class FlightDataProcessor:
         # --- Prepare datetime columns ---
         print("Parsing schedule departure/arrival times...")
         df['Schedule_Departure_DT'] = _parse_datetime(df, 'FlightDate', 'CRSDepTime')
-        df['Schedule_Arrival_DT'] = _parse_datetime(df, 'FlightDate', 'CRSArrTime')
+        df['Schedule_Arrival_DT']   = _parse_datetime(df, 'FlightDate', 'CRSArrTime')
 
         # Handle potential NaTs created during parsing (e.g., invalid times)
-        rows_before_dt_nan = len(df)
+        rows_before_dt_nan          = len(df)
         df.dropna(subset=['Schedule_Departure_DT', 'Schedule_Arrival_DT'], inplace=True)
         print(f"Removed {rows_before_dt_nan - len(df)} rows with invalid schedule datetimes.")
         print(f"Rows after datetime parsing & cleanup: {len(df)}")
@@ -208,21 +208,21 @@ class FlightDataProcessor:
         common_cols = [col for col in common_cols if col in df.columns]
 
         # Departure frame
-        dep_cols = common_cols + ['Schedule_Departure_DT', 'DepDelayMinutes']
-        dep_df = df[[col for col in dep_cols if col in df.columns]].copy()
+        dep_cols    = common_cols + ['Schedule_Departure_DT', 'DepDelayMinutes']
+        dep_df      = df[[col for col in dep_cols if col in df.columns]].copy()
         dep_df['Orientation'] = 'Departure'
         dep_df.rename(columns={
-            'Schedule_Departure_DT': 'Schedule_DateTime', # Consistent naming
-            'DepDelayMinutes': 'Flight_Delay'
+            'Schedule_Departure_DT' : 'Schedule_DateTime', # Consistent naming
+            'DepDelayMinutes'       : 'Flight_Delay'
         }, inplace=True)
 
         # Arrival frame
-        arr_cols = common_cols + ['Schedule_Arrival_DT', 'ArrDelayMinutes']
-        arr_df = df[[col for col in arr_cols if col in df.columns]].copy()
+        arr_cols              = common_cols + ['Schedule_Arrival_DT', 'ArrDelayMinutes']
+        arr_df                = df[[col for col in arr_cols if col in df.columns]].copy()
         arr_df['Orientation'] = 'Arrival'
         arr_df.rename(columns={
-            'Schedule_Arrival_DT': 'Schedule_DateTime', # Consistent naming
-            'ArrDelayMinutes': 'Flight_Delay'
+            'Schedule_Arrival_DT' : 'Schedule_DateTime', # Consistent naming
+            'ArrDelayMinutes'     : 'Flight_Delay'
         }, inplace=True)
 
         # Concatenate departure and arrival frames
@@ -255,7 +255,6 @@ class FlightDataProcessor:
         flight_df.reset_index(drop=True, inplace=True) # Reset index after sort
 
         # Calculate time difference between consecutive events *for the same tail number*
-        # Use groupby().diff() for efficiency
         flight_df['FTD_Timedelta'] = flight_df.groupby('Tail_Number')['Schedule_DateTime'].diff()
 
         # Convert Timedelta to minutes, fill NaT (first event for each tail) with 0
@@ -266,10 +265,8 @@ class FlightDataProcessor:
         # --- PFD Calculation ---
         # Since there's no time cutoff, we calculate PFD for the entire dataset.
         print("Calculating Previous Flight Delay (PFD) for all data...")
-        # Data is already sorted by Tail_Number, Schedule_DateTime
 
         # Get the 'Flight_Delay' from the previous row *for the same tail number*
-        # Use groupby().shift(1) for efficiency
         flight_df['PFD'] = flight_df.groupby('Tail_Number')['Flight_Delay'].shift(1)
 
         # Fill NaN PFD values (first event for each tail number) with 0
@@ -309,10 +306,10 @@ class FlightDataProcessor:
 
         # Calculate effective validation size relative to train_val_df
         relative_val_size = val_size # val_size is relative to train_val_df now
-        train_df, val_df = train_test_split(
+        train_df, val_df  = train_test_split(
             train_val_df,
-            test_size    = relative_val_size, # e.g. 0.25 means 25% of train_val_df -> validation
-            random_state = random_state
+            test_size     = relative_val_size, # e.g. 0.25 means 25% of train_val_df -> validation
+            random_state  = random_state
         )
 
         print(f"Train set size      : {len(train_df)}")
@@ -321,7 +318,7 @@ class FlightDataProcessor:
 
         # --- Subsampling Experiment 1: Varying Training Data Size ---
         print("\n--- Subsampling Experiment 1: Varying Training Data Size ---")
-        train_percentages = [20, 40, 60, 80, 100] # Use 100% as well
+        train_percentages = [20, 40, 60, 80, 100] 
         n_runs = 5 # Honestly random choice lol
 
         for percent in train_percentages:
