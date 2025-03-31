@@ -15,7 +15,8 @@ MONTH_SEASON_MAP = {
     3  : 'Spring',
     6  : 'Summer',
     9  : 'Autumn',
-    12 : 'Winter'
+    12 : 'Winter',
+    0  : 'Test',
 }
 FILENAME_PATTERN = "On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_{month}.csv"
 
