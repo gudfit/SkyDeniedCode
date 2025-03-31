@@ -303,18 +303,16 @@ class FlightDataProcessor:
             data_to_split,
             test_size    = test_size,
             random_state = random_state,
-            # Stratify might be useful on 'Orientation' or 'Season' if distribution is important
-            # stratify=data_to_split['Season']
         )
 
-        # Split Train+Validation into Train and Validation
+        # ---- Split Train+Validation into Train and Validation ----
+
         # Calculate effective validation size relative to train_val_df
         relative_val_size = val_size # val_size is relative to train_val_df now
         train_df, val_df = train_test_split(
             train_val_df,
             test_size    = relative_val_size, # e.g. 0.25 means 25% of train_val_df -> validation
             random_state = random_state
-            # stratify=train_val_df['Season'] # Stratify again if needed
         )
 
         print(f"Train set size      : {len(train_df)}")
