@@ -1,25 +1,26 @@
 import pandas as pd
-import numpy as np
+import numpy  as np
 import os
 import glob
+
 from sklearn.model_selection import train_test_split
 import datetime
 
 # --- Configuration ---
-DATA_DIR = './Data/'
-OUTPUT_DIR = 'processed_flight_data' # Create a subfolder for outputs
+DATA_DIR   = '../data/'
+OUTPUT_DIR = '../processedData'
 
 # Define the specific months and their corresponding seasons (ordered)
 MONTH_SEASON_MAP = {
-    3: 'Spring',
-    6: 'Summer',
-    9: 'Autumn',
-    12: 'Winter'
+    3  : 'Spring',
+    6  : 'Summer',
+    9  : 'Autumn',
+    12 : 'Winter'
 }
 FILENAME_PATTERN = "On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_{month}.csv"
 
-# Columns needed based on the algorithm description and standard BTS format
-# Mapping algorithm terms to potential CSV columns
+
+# Mapping terms 
 COLUMNS_TO_READ = [
     'FlightDate',                      # Needed for Schedule datetime
     'Reporting_Airline',               # Carrier airline
@@ -29,7 +30,6 @@ COLUMNS_TO_READ = [
     'Dest',                            # Destination
     'CRSDepTime',                      # Schedule departure (time part)
     'CRSArrTime',                      # Schedule arrival (time part)
-    'CRSElapsedTime',                  # **** ADDED: CRS Elapsed Time of Flight, in Minutes ****
     'DepDelayMinutes',                 # Departure delay
     'ArrDelayMinutes',                 # Arrival delay
     'Cancelled',                       # Check if cancelled then delete.
@@ -41,45 +41,38 @@ COLUMNS_TO_READ = [
 def _parse_datetime(df, date_col, time_col):
     """Combines date and hhmm time columns into a datetime object."""
     # Format time: Zero-pad hhmm to 4 digits, handle '2400' -> '0000' (next day handled by date)
-    time_str = df[time_col].fillna(0).astype(int).astype(str).str.zfill(4)
-    # Handle 2400 -> 0000 for time parsing, date increment handled later if needed
-    # pd.to_datetime can sometimes handle HHMM directly, but being explicit is safer
-    time_str = time_str.replace('2400', '0000') # Replace 2400 with 0000 for parsing
-
+    time_str     = df[time_col].fillna(0).astype(int).astype(str).str.zfill(4)
+    time_str     = time_str.replace('2400', '0000') # Replace 2400 with 0000 for parsing
     # Combine date and time strings
     datetime_str = df[date_col].astype(str) + ' ' + time_str.str[:2] + ':' + time_str.str[2:]
-
     # Convert to datetime, coercing errors to NaT (Not a Time)
     datetime_obj = pd.to_datetime(datetime_str, format='%Y-%m-%d %H:%M', errors='coerce')
 
     # Optional: Handle original '2400' times by adding a day if needed.
     # This is complex as it depends on if the *date* also needs incrementing.
     # For simplicity here, we assume '2400' meant midnight of the *given* date.
-    # CRSElapsedTime might help validate this if needed, but we keep it simple for now.
 
     return datetime_obj
 
 # --- Main Processing Class ---
 
 class FlightDataProcessor:
-    """
-    Encapsulates the flight data processing logic based on the provided algorithm.
-    """
+    """Flight data processing logic"""
     def __init__(self, data_dir, file_pattern, month_map, columns_to_read):
-        self.data_dir = data_dir
-        self.file_pattern = file_pattern
-        self.month_map = month_map
+        self.data_dir        = data_dir
+        self.file_pattern    = file_pattern
+        self.month_map       = month_map
         self.columns_to_read = columns_to_read
-        self.raw_df = None
-        self.processed_df = None # This will hold the final dataset after FTD/PFD calc
-        self.last_point_df = None # Still useful to identify last flights per tail
+        self.raw_df          = None
+        self.processed_df    = None # Holds the final dataset after FTD/PFD calc
+        self.last_point_df   = None # Useful to identify last flights per tail
 
     def load_and_prepare_initial_data(self):
         """Loads data from multiple CSVs, assigns seasons, selects columns."""
         all_dataframes = []
         print("--- Stage 1: Loading Initial Data ---")
         for month in self.month_map.keys():
-            season = self.month_map[month]
+            season   = self.month_map[month]
             filename = self.file_pattern.format(month=month)
             filepath = os.path.join(self.data_dir, filename)
 
@@ -101,7 +94,7 @@ class FlightDataProcessor:
                          print(f"  Warning: Could not check columns for {filename}: {e}")
                          # Proceed assuming columns exist, might fail later
 
-                    df_month = pd.read_csv(filepath, usecols=cols_to_read_for_file, low_memory=False)
+                    df_month           = pd.read_csv(filepath, usecols=cols_to_read_for_file, low_memory=False)
                     df_month['Season'] = season
                     all_dataframes.append(df_month)
                     print(f" -> Found {len(df_month)} records.")
@@ -126,7 +119,7 @@ class FlightDataProcessor:
         return True
 
     def preprocess_data(self):
-        """ Step 2: Pre-processing data // removing duplicates, missing and null values, and canceled flights """
+        """Pre-processing data"""
         if self.raw_df is None:
             print("Error: Raw data not loaded.")
             return False
@@ -136,7 +129,8 @@ class FlightDataProcessor:
         initial_rows = len(df)
         print(f"Initial rows: {initial_rows}")
 
-        # Remove canceled flights (assuming 'Cancelled' == 1.0 means cancelled)
+        # Remove canceled flights
+        # Important: I am Assuming 'Cancelled' == 1.0
         cancelled_count = 0
         if 'Cancelled' in df.columns:
             # Ensure Cancelled is numeric, coercing errors
@@ -151,7 +145,7 @@ class FlightDataProcessor:
         key_cols_for_nan = [
             'FlightDate', 'Reporting_Airline', 'Flight_Number_Reporting_Airline',
             'Tail_Number', 'Origin', 'Dest', 'CRSDepTime', 'CRSArrTime',
-            'DepDelayMinutes', 'ArrDelayMinutes', 'CRSElapsedTime' # Added CRSElapsedTime
+            'DepDelayMinutes', 'ArrDelayMinutes'
         ]
         # Ensure key columns actually exist before trying to dropna
         key_cols_present = [col for col in key_cols_for_nan if col in df.columns]
@@ -162,7 +156,7 @@ class FlightDataProcessor:
         print(f"Removed {rows_before_nan - rows_after_nan} rows with missing values in key columns: {key_cols_present}.")
 
         # Convert delay columns and ElapsedTime to numeric, handling potential errors
-        numeric_cols = ['DepDelayMinutes', 'ArrDelayMinutes', 'CRSElapsedTime']
+        numeric_cols = ['DepDelayMinutes', 'ArrDelayMinutes']
         for col in numeric_cols:
             if col in df.columns:
                  df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -184,7 +178,7 @@ class FlightDataProcessor:
 
 
     def reshape_and_calculate_features(self):
-        """ Steps 3-15 & FTD/PFD Calculation (No historical/future split based on time) """
+        """FTD/PFD Calculation (No historical/future split based on time) """
         if self.processed_df is None: # Use data from preprocessing step
             print("Error: Data not preprocessed.")
             return False
@@ -203,12 +197,12 @@ class FlightDataProcessor:
         print(f"Removed {rows_before_dt_nan - len(df)} rows with invalid schedule datetimes.")
         print(f"Rows after datetime parsing & cleanup: {len(df)}")
 
-        # --- Steps 3-12: Create Departure and Arrival Frames and Concatenate ---
+        # --- Create Departure and Arrival Frames and Concatenate ---
         print("Creating departure and arrival frames...")
         # Common columns to duplicate
         common_cols = [
             'Reporting_Airline', 'Flight_Number_Reporting_Airline', 'Tail_Number',
-            'Origin', 'Dest', 'Season', 'CRSElapsedTime' # Keep Season and CRSElapsedTime
+            'Origin', 'Dest', 'Season'
         ]
         # Ensure all common columns exist in df
         common_cols = [col for col in common_cols if col in df.columns]
@@ -231,18 +225,16 @@ class FlightDataProcessor:
             'ArrDelayMinutes': 'Flight_Delay'
         }, inplace=True)
 
-        # Step 13: Concatenate departure and arrival frames
+        # Concatenate departure and arrival frames
         print("Concatenating frames...")
         flight_df = pd.concat([dep_df, arr_df], ignore_index=True)
 
-        # Rename columns for clarity / closer match to algorithm terms
+        # Rename columns for clarity
         flight_df.rename(columns={
-            'Reporting_Airline': 'Carrier_Airline',
-            'Flight_Number_Reporting_Airline': 'Flight_Number',
-            'Tail_Number': 'Tail_Number',
-            # Origin, Dest, Season already clear
-            'Schedule_DateTime': 'Schedule_DateTime',
-            'CRSElapsedTime': 'CRS_Elapsed_Time'
+            'Reporting_Airline'               : 'Carrier_Airline',
+            'Flight_Number_Reporting_Airline' : 'Flight_Number',
+            'Tail_Number'                     : 'Tail_Number',
+            'Schedule_DateTime'               : 'Schedule_DateTime',
         }, inplace=True)
 
         # Ensure correct data types for delays and elapsed time
@@ -252,11 +244,11 @@ class FlightDataProcessor:
 
         print(f"Reshaped data frame ('Flight') created with {len(flight_df)} rows.")
 
-        # --- Steps 14-15 (Algorithm Part 1): Initialize FTD and PFD ---
+        # --- Initialize FTD and PFD ---
         flight_df['FTD'] = 0.0 # Flight Time Duration (time since last landing/takeoff for this tail) in minutes
         flight_df['PFD'] = 0.0 # Previous Flight Delay in minutes
 
-        # --- FTD Calculation (Algorithm Part 2, Steps 1-9) ---
+        # --- FTD Calculation ---
         print("Calculating Flight Time Duration (FTD - time between consecutive events for a tail)...")
         # Sort by tail number and time to properly calculate differences
         flight_df.sort_values(by=['Tail_Number', 'Schedule_DateTime'], inplace=True)
@@ -271,7 +263,7 @@ class FlightDataProcessor:
         flight_df['FTD'] = flight_df['FTD'].fillna(0.0) # Fill NaNs for first events
         flight_df.drop(columns=['FTD_Timedelta'], inplace=True) # Remove temporary column
 
-        # --- PFD Calculation (Algorithm Part 3, Steps 1-8 applied to all data) ---
+        # --- PFD Calculation ---
         # Since there's no time cutoff, we calculate PFD for the entire dataset.
         print("Calculating Previous Flight Delay (PFD) for all data...")
         # Data is already sorted by Tail_Number, Schedule_DateTime
@@ -309,8 +301,8 @@ class FlightDataProcessor:
         # Split into Train+Validation and Test
         train_val_df, test_df = train_test_split(
             data_to_split,
-            test_size=test_size,
-            random_state=random_state,
+            test_size    = test_size,
+            random_state = random_state,
             # Stratify might be useful on 'Orientation' or 'Season' if distribution is important
             # stratify=data_to_split['Season']
         )
@@ -320,19 +312,19 @@ class FlightDataProcessor:
         relative_val_size = val_size # val_size is relative to train_val_df now
         train_df, val_df = train_test_split(
             train_val_df,
-            test_size=relative_val_size, # e.g. 0.25 means 25% of train_val_df -> validation
-            random_state=random_state
+            test_size    = relative_val_size, # e.g. 0.25 means 25% of train_val_df -> validation
+            random_state = random_state
             # stratify=train_val_df['Season'] # Stratify again if needed
         )
 
-        print(f"Train set size: {len(train_df)}")
-        print(f"Validation set size: {len(val_df)}")
-        print(f"Test set size: {len(test_df)}")
+        print(f"Train set size      : {len(train_df)}")
+        print(f"Validation set size : {len(val_df)}")
+        print(f"Test set size       : {len(test_df)}")
 
         # --- Subsampling Experiment 1: Varying Training Data Size ---
         print("\n--- Subsampling Experiment 1: Varying Training Data Size ---")
         train_percentages = [20, 40, 60, 80, 100] # Use 100% as well
-        n_runs = 5 # Reduced for brevity
+        n_runs = 5 # Honestly random choice lol
 
         for percent in train_percentages:
             print(f"\n  Training with {percent}% of training data ({n_runs} runs):")
@@ -352,7 +344,7 @@ class FlightDataProcessor:
                      continue
                 # In a real scenario, train model on 'sample_df', evaluate on 'val_df'
                 mean_delay = sample_df['Flight_Delay'].mean()
-                std_delay = sample_df['Flight_Delay'].std()
+                std_delay  = sample_df['Flight_Delay'].std()
                 delay_stats.append(mean_delay)
                 print(f"    Run {i+1}: Sample size={len(sample_df)}, Mean Delay={mean_delay:.2f}, Std Delay={std_delay:.2f}")
 
@@ -450,10 +442,10 @@ if __name__ == "__main__":
     print("Starting Flight Data Processing Pipeline...")
 
     processor = FlightDataProcessor(
-        data_dir=DATA_DIR,
-        file_pattern=FILENAME_PATTERN,
-        month_map=MONTH_SEASON_MAP,
-        columns_to_read=COLUMNS_TO_READ
+        data_dir        = DATA_DIR,
+        file_pattern    = FILENAME_PATTERN,
+        month_map       = MONTH_SEASON_MAP,
+        columns_to_read = COLUMNS_TO_READ
     )
 
     # Run the pipeline steps
