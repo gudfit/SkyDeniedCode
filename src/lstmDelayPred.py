@@ -22,10 +22,10 @@ warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
 
 # --- CORAL Loss functions ---
 try:
-    from coral_loss import coral_loss, levels_from_logits
+    from coralLoss import coral_loss, levels_from_logits
 except ImportError:
-    import tensorflow as tf
-    from tensorflow.keras import backend as K
+    import tensorflow       as tf
+    from   tensorflow.keras import backend as K
 
     def coral_loss(num_classes):
         def loss(y_true_levels, y_pred_logits):
