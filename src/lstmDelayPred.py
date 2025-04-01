@@ -18,15 +18,13 @@ from tensorflow.keras.layers      import (
 from tensorflow.keras.callbacks   import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers  import Adam
 warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
-
+warnings.filterwarnings("ignore", category=FutureWarning)  # Ignore some TF warnings
 
 # --- CORAL Loss functions ---
 try:
     from coralLoss import coral_loss, levels_from_logits
 except ImportError:
-    import tensorflow       as tf
-    from   tensorflow.keras import backend as K
-
+    print("coral_loss.py not found. Defining CORAL functions locally.")
     def coral_loss(num_classes):
         def loss(y_true_levels, y_pred_logits):
             y_true_levels           = tf.cast(y_true_levels, tf.int32)
@@ -50,6 +48,17 @@ except ImportError:
         predict_levels = tf.reduce_sum(tf.cast(cumprobs > 0.5, tf.int32), axis=1)
         return predict_levels
 
+# --- Configuration ---
+DATA_DIR        = '../processedData'
+RESULTS_DIR     = '../resultLstmOrdinal'
+MODEL_DIR       = '../modelLstmOrdinal'
+SEQUENCE_LENGTH = 2
+LSTM_UNITS      = 64
+DROPOUT_RATE    = 0.2
+LEARNING_RATE   = 0.001
+BATCH_SIZE      = 128
+EPOCHS          = 1
+PATIENCE        = 10
 
 # --- Data Processor Class ---
 class DataProcessor:
@@ -402,18 +411,6 @@ class FlightDelayPipeline:
 
 
 if __name__ == '__main__':
-    # --- Configuration ---
-    DATA_DIR        = '../processedData'
-    RESULTS_DIR     = '../resultLstmOrdinal'
-    MODEL_DIR       = '../modelLstmOrdinal'
-    SEQUENCE_LENGTH = 2
-    LSTM_UNITS      = 64
-    DROPOUT_RATE    = 0.2
-    LEARNING_RATE   = 0.001
-    BATCH_SIZE      = 128
-    EPOCHS          = 1
-    PATIENCE        = 10
-
     pipeline = FlightDelayPipeline(
         data_dir        = DATA_DIR,
         results_dir     = RESULTS_DIR,
