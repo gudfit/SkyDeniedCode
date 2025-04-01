@@ -74,23 +74,23 @@ class FlightDataProcessor:
 
     def load_and_prepare_initial_data(self):
         """Loads data from multiple CSVs, assigns seasons, selects columns."""
-        all_dataframes          = []
+        all_dataframes                            = []
         print("--- Stage 1: Loading Initial Data ---")
         # Check if essential date/time columns are requested
-        required_cols_for_parse = ['FlightDate', 'CRSDepTime', 'CRSArrTime']
+        required_cols_for_parse                   = ['FlightDate', 'CRSDepTime', 'CRSArrTime']
         if not all(col in self.columns_to_read for col in required_cols_for_parse):
              print(f"Error: Essential columns for datetime parsing {required_cols_for_parse} are missing from COLUMNS_TO_READ.")
              return False
-
+        
         for month in self.month_map.keys():
-            season   = self.month_map[month]
-            filename = self.file_pattern.format(month=month)
-            filepath = os.path.join(self.data_dir, filename)
+            season                                = self.month_map[month]
+            filename                              = self.file_pattern.format(month=month)
+            filepath                              = os.path.join(self.data_dir, filename)
 
             if os.path.exists(filepath):
                 print(f"Reading {filename} (Season: {season})...")
                 try:
-                    cols_to_read_for_file = self.columns_to_read[:]
+                    cols_to_read_for_file         = self.columns_to_read[:]
                     try:
                         file_cols                 = pd.read_csv(filepath, nrows=0).columns.tolist()
                         cols_present              = [col for col in cols_to_read_for_file if col in file_cols]
@@ -106,8 +106,8 @@ class FlightDataProcessor:
                         print(f"  Error: Essential datetime columns missing in file {filename} after check. Skipping file.")
                         continue
 
-                    df_month           = pd.read_csv(filepath, usecols=cols_to_read_for_file, low_memory=False)
-                    df_month['Season'] = season
+                    df_month                      = pd.read_csv(filepath, usecols=cols_to_read_for_file, low_memory=False)
+                    df_month['Season']            = season
                     all_dataframes.append(df_month)
                     print(f" -> Found {len(df_month)} records.")
                 except ValueError as ve:
@@ -121,14 +121,14 @@ class FlightDataProcessor:
             print("Error: No dataframes were loaded or essential columns missing. Exiting.")
             return False
 
-        self.raw_df = pd.concat(all_dataframes, ignore_index=True)
+        self.raw_df                               = pd.concat(all_dataframes, ignore_index=True)
         print(f"Total raw records loaded: {len(self.raw_df)}")
 
         # Ensure all expected columns exist, fill missing ones with NaN
         for col in self.columns_to_read:
              if col not in self.raw_df.columns:
                  print(f"Warning: Column '{col}' was specified but not found in any loaded file. Adding as NaN.")
-                 self.raw_df[col] = np.nan
+                 self.raw_df[col]                 = np.nan
 
         return True
 
@@ -139,52 +139,52 @@ class FlightDataProcessor:
             return False
 
         print("\n--- Stage 2: Preprocessing Data ---")
-        df           = self.raw_df.copy()
-        initial_rows = len(df)
+        df                          = self.raw_df.copy()
+        initial_rows                = len(df)
         print(f"Initial rows: {initial_rows}")
 
         # Remove canceled flights
-        cancelled_count     = 0
+        cancelled_count             = 0
         if 'Cancelled' in df.columns:
-            df['Cancelled'] = pd.to_numeric(df['Cancelled'], errors='coerce')
-            cancelled_count = df['Cancelled'].sum() # NaNs become 0 here
-            df              = df[df['Cancelled'] != 1.0]
+            df['Cancelled']         = pd.to_numeric(df['Cancelled'], errors='coerce')
+            cancelled_count         = df['Cancelled'].sum() # NaNs become 0 here
+            df                      = df[df['Cancelled'] != 1.0]
             print(f"Removed {int(cancelled_count)} cancelled flights (and rows with non-numeric 'Cancelled').")
         else:
             print("Warning: 'Cancelled' column not found, skipping cancellation filter.")
 
         # Identify key columns for NaN checks - REMOVED CRSElapsedTime
-        key_cols_for_nan = [
+        key_cols_for_nan           = [
             'FlightDate', 'Reporting_Airline', 'Flight_Number_Reporting_Airline',
             'Tail_Number', 'Origin', 'Dest', 'CRSDepTime', 'CRSArrTime',
             'DepDelayMinutes', 'ArrDelayMinutes'
         ]
-        key_cols_present = [col for col in key_cols_for_nan if col in df.columns]
-        missing_key_cols = set(key_cols_for_nan) - set(key_cols_present)
+        key_cols_present           = [col for col in key_cols_for_nan if col in df.columns]
+        missing_key_cols           = set(key_cols_for_nan) - set(key_cols_present)
         if missing_key_cols:
             print(f"Warning: Key columns for NaN check missing: {missing_key_cols}. Proceeding without them for NaN drop.")
 
-        rows_before_nan   = len(df)
+        rows_before_nan            = len(df)
         # Drop rows with NaN in ANY of the essential columns that ARE present
         if key_cols_present:
-            df.dropna(subset=key_cols_present, inplace=True)
-        rows_after_nan    = len(df)
-        removed_nan_count = rows_before_nan - rows_after_nan
+            df.dropna(subset       = key_cols_present, inplace=True)
+        rows_after_nan             = len(df)
+        removed_nan_count          = rows_before_nan - rows_after_nan
         print(f"Removed {removed_nan_count} rows with missing values in key columns: {key_cols_present}.")
 
         # Convert relevant columns to numeric - REMOVED CRSElapsedTime
-        numeric_cols     = ['DepDelayMinutes', 'ArrDelayMinutes', 'CRSDepTime', 'CRSArrTime']
+        numeric_cols               = ['DepDelayMinutes', 'ArrDelayMinutes', 'CRSDepTime', 'CRSArrTime']
         for col in numeric_cols:
             if col in df.columns:
-                 df[col] = pd.to_numeric(df[col], errors='coerce')
+                 df[col]           = pd.to_numeric(df[col], errors='coerce')
 
         # Drop rows where numeric conversion failed - REMOVED CRSElapsedTime check
-        rows_before_num_nan  = len(df)
-        numeric_cols_present = [col for col in numeric_cols if col in df.columns]
+        rows_before_num_nan        = len(df)
+        numeric_cols_present       = [col for col in numeric_cols if col in df.columns]
         if numeric_cols_present:
-            df.dropna(subset = numeric_cols_present, inplace=True)
-        rows_after_num_nan   = len(df)
-        removed_num_nan      = rows_before_num_nan - rows_after_num_nan
+            df.dropna(subset       = numeric_cols_present, inplace=True)
+        rows_after_num_nan         = len(df)
+        removed_num_nan            = rows_before_num_nan - rows_after_num_nan
         print(f"Removed {removed_num_nan} rows with non-numeric values in essential time/delay columns.")
 
         # Remove duplicates
