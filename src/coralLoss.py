@@ -44,7 +44,7 @@ def coral_loss(num_classes):
 
 def levels_from_logits(logits):
     """Converts model logits (cumulative probabilities) to predicted levels (bins)."""
-    cumprobs = tf.sigmoid(logits)
+    cumprobs       = tf.sigmoid(logits)
     # Check where cumprobs > 0.5. Summing these gives the predicted level.
     predict_levels = tf.reduce_sum(tf.cast(cumprobs > 0.5, tf.int32), axis=1)
     return predict_levels
