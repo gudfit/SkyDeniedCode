@@ -35,9 +35,9 @@ def coral_loss(num_classes):
                                       * tf.math.log(1.0 - y_pred_cumprobs + K.epsilon()))
         
         # Sum the loss across thresholds for each sample.
-        loss = tf.reduce_sum(loss, axis=1)
+        loss                     = tf.reduce_sum(loss, axis=1)
         # Average the loss over all samples in the batch.
-        loss = tf.reduce_mean(loss)
+        loss                     = tf.reduce_mean(loss)
         return K.mean(loss)
 
     return loss
