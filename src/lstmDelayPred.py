@@ -36,12 +36,13 @@ except ImportError:
             y_true_levels_expanded  = tf.expand_dims(y_true_levels, axis=1)
             y_true_cum              = tf.cast(val < y_true_levels_expanded, tf.float32)
             y_pred_cumprobs         = tf.sigmoid(y_pred_logits)
-            log_loss                = -tf.reduce_sum(
-                (y_true_cum * K.log(y_pred_cumprobs + K.epsilon()) +
-                 (1.0 - y_true_cum) * K.log(1.0 - y_pred_cumprobs + K.epsilon())),
-                axis=1
-            )
-            return K.mean(log_loss)
+            log_loss                = - (y_true_cum 
+                                      * tf.math.log(y_pred_cumprobs + K.epsilon()) 
+                                      + (1.0 - y_true_cum) 
+                                      * tf.math.log(1.0 - y_pred_cumprobs + K.epsilon()))
+            log_loss                = tf.reduce_sum(log_loss, axis=1)
+            log_loss                = tf.reduce_mean(log_loss)
+            return log_loss
         return loss
 
     def levels_from_logits(logits):

@@ -29,16 +29,16 @@ def coral_loss(num_classes):
         y_pred_cumprobs          = tf.sigmoid(y_pred_logits)
 
         # Calculate CORAL loss (log loss on cumulative probabilities)
-        loss                     = - (y_true_cum 
+        log_loss                 = - (y_true_cum 
                                       * tf.math.log(y_pred_cumprobs + K.epsilon()) 
                                       + (1.0 - y_true_cum) 
                                       * tf.math.log(1.0 - y_pred_cumprobs + K.epsilon()))
         
         # Sum the loss across thresholds for each sample.
-        loss                     = tf.reduce_sum(loss, axis=1)
+        log_loss                 = tf.reduce_sum(log_loss, axis=1)
         # Average the loss over all samples in the batch.
-        loss                     = tf.reduce_mean(loss)
-        return K.mean(loss)
+        log_loss                 = tf.reduce_mean(log_loss)
+        return log_loss
 
     return loss
 
