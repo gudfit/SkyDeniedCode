@@ -3,18 +3,19 @@ import numpy                as np
 import os
 import joblib               # For saving/loading scalers/encoders
 import warnings
-
-from sklearn.preprocessing   import LabelEncoder, MinMaxScaler, StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics         import mean_absolute_error, mean_squared_error
-
 import tensorflow           as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import (
+
+from sklearn.preprocessing        import LabelEncoder, MinMaxScaler, StandardScaler
+from sklearn.model_selection      import train_test_split
+from sklearn.metrics              import mean_absolute_error, mean_squared_error
+
+
+from tensorflow.keras.models      import Model
+from tensorflow.keras.layers      import (
     Input, LSTM, Dense, Dropout, TimeDistributed,
     BatchNormalization, Attention
 )
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks   import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers  import Adam
 warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
 
@@ -91,7 +92,7 @@ class DataProcessor:
 
         # 1. Sort values (by Tail_Number and Schedule_DateTime)
         df['Schedule_DateTime'] = pd.to_datetime(df['Schedule_DateTime'])
-        df                    = df.sort_values(by=['Tail_Number', 'Schedule_DateTime']).reset_index(drop=True)
+        df                      = df.sort_values(by=['Tail_Number', 'Schedule_DateTime']).reset_index(drop=True)
 
         # Feature Engineering: Extract time features
         df['Month']     = df['Schedule_DateTime'].dt.month
@@ -425,4 +426,3 @@ if __name__ == '__main__':
         patience        = PATIENCE
     )
     pipeline.run()
-
