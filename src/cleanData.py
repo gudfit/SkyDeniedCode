@@ -7,8 +7,8 @@ from sklearn.model_selection import train_test_split
 import datetime
 
 # --- Configuration ---
-DATA_DIR   = '../data/'
-OUTPUT_DIR = '../processedData'
+DATA_DIR         = '../data/'
+OUTPUT_DIR       = '../processedData'
 
 # Define the specific months and their corresponding seasons (ordered)
 MONTH_SEASON_MAP = {
@@ -19,10 +19,10 @@ MONTH_SEASON_MAP = {
     0  : 'Test',
 }
 
-FILENAME_PATTERN = "On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_{month}.csv"
+FILENAME_PATTERN  = "On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_{month}.csv"
 
 # Mapping terms 
-COLUMNS_TO_READ = [
+COLUMNS_TO_READ   = [
     'FlightDate',                      # Needed for Schedule datetime
     'Reporting_Airline',               # Carrier airline
     'Flight_Number_Reporting_Airline', # Flight number
