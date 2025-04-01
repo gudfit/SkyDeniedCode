@@ -402,9 +402,9 @@ class FlightDelayPipeline:
 
 if __name__ == '__main__':
     # --- Configuration ---
-    DATA_DIR        = 'processed_flight_data'
-    RESULTS_DIR     = 'results_lstm_ordinal'
-    MODEL_DIR       = 'models_lstm_ordinal'
+    DATA_DIR        = '../processedData'
+    RESULTS_DIR     = '../resultLstmOrdinal'
+    MODEL_DIR       = '../modelLstmOrdinal'
     SEQUENCE_LENGTH = 2
     LSTM_UNITS      = 64
     DROPOUT_RATE    = 0.2
