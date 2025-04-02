@@ -4,6 +4,8 @@
 
 ### Setting Up the Environment (cleanData)
 
+To set up your environment for running `cleanData.py` or other scripts, you'll need to use `uv` for managing your virtual environment:
+
 ```bash
 # Install uv from https://github.com/astral-sh/uv
 
