@@ -2,7 +2,30 @@
 
 ## Installation Guide
 
-### Setting Up the Environment
+### Setting Up the Environment (cleanData)
+
+```bash
+# Install uv from https://github.com/astral-sh/uv
+
+# Create a virtual environment
+uv venv .venv
+
+# Activate the virtual environment
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
+
+# Install necessary packages
+uv pip install pandas numpy scikit-learn
+
+# Run your Python scripts
+uv run python cleanData.py
+# Or
+uv run python cleanRealTime.py
+```
+
+### Setting Up the Environment ML
 
 ```bash
 # Create a new conda environment with Python 3.9 and TensorFlow 2.12
@@ -44,6 +67,7 @@ conda remove --name <env_name> --all
 ## Project Structure
 
 - `cleanData.py` - Data preprocessing
+- `cleanRealTime.py` - Real-time data cleaning
 - `coralLoss.py` - Loss function implementation
 - `gruDelayPred.py` - GRU-based delay prediction model
 - `lstmDelayPred.py` - LSTM-based delay prediction model
