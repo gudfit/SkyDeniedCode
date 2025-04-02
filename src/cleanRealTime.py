@@ -1,14 +1,15 @@
 # run_realtime.py
 import datetime
 import os
-import pandas as pd
+import pandas  as pd
+
 from cleanData import FlightDataProcessor, DATA_DIR, FILENAME_PATTERN, MONTH_SEASON_MAP, COLUMNS_TO_READ
 
 # Set FILENAME to a specific file path
 # For example
 # - Unix:    FILENAME = "../data/Data.csv"
 # - Windows: FILENAME = "..\\data\\Data.csv"
-FILENAME = "..\\data\\On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_0.csv"
+FILENAME   = "..\\data\\On_Time_Reporting_Carrier_On_Time_Performance_(1987_present)_2022_0.csv"
 
 # Configure the output directory for realtime predictions
 OUTPUT_DIR = '../processedDataRealtime'
@@ -27,9 +28,11 @@ def run_realtime_processing():
     if FILENAME:
         print(f"Quick test mode: Loading specified file: {FILENAME}")
         try:
-            df = pd.read_csv(FILENAME, usecols=COLUMNS_TO_READ, low_memory=False)
+            df               = pd.read_csv(FILENAME, 
+                                           usecols   = COLUMNS_TO_READ, 
+                                           low_memory= False)
             # If testing a single file, assign a default Season value
-            df['Season'] = 'Test'
+            df['Season']     = 'Test'
             processor.raw_df = df
             print(f"Loaded {len(df)} records from {FILENAME}.")
         except Exception as e:
