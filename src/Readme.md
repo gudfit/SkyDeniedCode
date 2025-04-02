@@ -60,6 +60,23 @@ Expected output if successful:
 
 ### Environment Management Commands
 
+UV:
+
+```bash
+# Deactivate the environment
+deactivate
+
+# Remove an environment
+# You can delete them by removing the directory
+# Windows:
+rmdir /s /q path\\to\\your\\venv
+
+# Unix:
+rm -rf path/to/your/venv
+```
+
+Conda:
+
 ```bash
 # Deactivate the environment
 conda deactivate
