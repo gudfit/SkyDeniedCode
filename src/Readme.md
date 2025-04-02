@@ -4,7 +4,7 @@
 
 ### Setting Up the Environment (cleanData)
 
-To set up your environment for running `cleanData.py` or other scripts, you'll need to use `uv` for managing your virtual environment:
+To set up your environment for running `cleanData.py` or `cleanRealTime.py`, you'll need to use `uv` for managing your virtual environment:
 
 ```bash
 # Install uv from https://github.com/astral-sh/uv
@@ -29,7 +29,11 @@ uv run python cleanRealTime.py
 
 ### Setting Up the Environment ML
 
+To set up your environment for running our ml prediction functions or other scripts, you'll need to use `conda` for managing your virtual environment:
+
 ```bash
+# Download and install from the official Anaconda website: https://www.anaconda.com/products/distribution
+
 # Create a new conda environment with Python 3.9 and TensorFlow 2.12
 conda create -n tf2.12 -c conda-forge python=3.9 tensorflow=2.12
 
@@ -49,6 +53,7 @@ python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU')
 ```
 
 Expected output if successful:
+
 ```
 [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
 ```
