@@ -1,0 +1,7 @@
+# Ignore Python bytecode cache directories
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environment directory
+t/
