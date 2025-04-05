@@ -84,8 +84,8 @@ class FlightDataAdapter:
     
     def process_data(self, df):
         """Process the entire flight chain dataset"""
-        chains = []
-        labels = []
+        chains              = []
+        labels              = []
         
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing flight chains"):
             # Transform the chain
