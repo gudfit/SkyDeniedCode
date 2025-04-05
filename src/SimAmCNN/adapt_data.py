@@ -56,17 +56,17 @@ class FlightDataAdapter:
     
     def transform_chain(self, chain_row):
         """Transform a single row of flight chain data into a format suitable for the model"""
-        flights              = []
+        flights                           = []
         
         for flight_idx in range(1, 4):  # Assuming 3 flights in a chain
-            prefix           = f"flight{flight_idx}_"
+            prefix                        = f"flight{flight_idx}_"
             # Get all columns for this flight
-            flight_cols      = [col for col in chain_row.index if col.startswith(prefix)]
+            flight_cols                   = [col for col in chain_row.index if col.startswith(prefix)]
             # Create a dictionary with this flight's data
-            flight_data      = {}
+            flight_data                   = {}
             for col in flight_cols:
                 # Remove the prefix from the column name
-                feature_name = col.replace(prefix, "")
+                feature_name              = col.replace(prefix, "")
                 flight_data[feature_name] = chain_row[col]
             
             if f"flight{flight_idx}_FTD" not in chain_row.index and f"flight{flight_idx}_PFD" not in chain_row.index:
