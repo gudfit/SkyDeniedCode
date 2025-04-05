@@ -18,33 +18,33 @@ class FlightDataAdapter:
     """Adapter to transform processed flight chain data into the format needed by the model"""
     def __init__(self, categorical_features, numerical_features, temporal_features):
         """Initialize the adapter with feature definitions"""
-        self.categorical_features = categorical_features
-        self.numerical_features   = numerical_features
-        self.temporal_features    = temporal_features
-        self.categorical_encoders = {}
-        self.numerical_scaler     = StandardScaler()
+        self.categorical_features         = categorical_features
+        self.numerical_features           = numerical_features
+        self.temporal_features            = temporal_features
+        self.categorical_encoders         = {}
+        self.numerical_scaler             = StandardScaler()
     
     def fit(self, df):
         """Fit the encoders and scalers on the training data"""
         # Extract flight-specific features for all flights in chains
-        flight_dfs            = []
+        flight_dfs                        = []
         for flight_idx in range(1, 4):  # Assuming 3 flights in a chain
-            prefix            = f"flight{flight_idx}_"
+            prefix                        = f"flight{flight_idx}_"
             # Get all columns for this flight
-            flight_cols       = [col for col in df.columns if col.startswith(prefix)]
+            flight_cols                   = [col for col in df.columns if col.startswith(prefix)]
             # Create a DataFrame with just this flight's data
-            flight_df         = df[flight_cols].copy()
+            flight_df                     = df[flight_cols].copy()
             # Rename columns to remove the prefix
-            flight_df.columns = [col.replace(prefix, "") for col in flight_df.columns]
+            flight_df.columns             = [col.replace(prefix, "") for col in flight_df.columns]
             flight_dfs.append(flight_df)
         
         # Combine all flights into a single DataFrame
-        all_flights_df        = pd.concat(flight_dfs, ignore_index=True)
+        all_flights_df                    = pd.concat(flight_dfs, ignore_index=True)
         
         # Fit categorical encoders
         for feature in self.categorical_features:
             if feature in all_flights_df.columns:
-                encoder       = OneHotEncoder(handle_unknown='ignore')
+                encoder                   = OneHotEncoder(handle_unknown='ignore')
                 encoder.fit(all_flights_df[feature].values.reshape(-1, 1))
                 self.categorical_encoders[feature] = encoder
         
