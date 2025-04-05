@@ -152,19 +152,19 @@ class AdaptedFlightChainDataset(Dataset):
 
 def main():
     # Define feature sets
-    categorical_features = ['Carrier_Airline', 'Tail_Number', 'Origin', 'Dest', 'Orientation']
-    numerical_features   = ['Flight_Duration_Minutes', 'FTD', 'PFD', 'Flight_Delay']
-    temporal_features    = ['Schedule_DateTime']
+    categorical_features       = ['Carrier_Airline', 'Tail_Number', 'Origin', 'Dest', 'Orientation']
+    numerical_features         = ['Flight_Duration_Minutes', 'FTD', 'PFD', 'Flight_Delay']
+    temporal_features          = ['Schedule_DateTime']
     # Load the processed data
-    train_df             = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/train_set.csv')))
-    val_df               = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/validation_set.csv')))
-    test_df              = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/test_set.csv')))
+    train_df                   = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/train_set.csv')))
+    val_df                     = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/validation_set.csv')))
+    test_df                    = pd.read_csv(os.path.normpath(os.path.join(script_dir, '../../mlData/processedDataTest/test_set.csv')))
    
     # Create data adapter
     adapter = FlightDataAdapter(
-        categorical_features = categorical_features,
-        numerical_features   = numerical_features,
-        temporal_features    = temporal_features
+        categorical_features   = categorical_features,
+        numerical_features     = numerical_features,
+        temporal_features      = temporal_features
     )
     
     # Fit the adapter on training data
