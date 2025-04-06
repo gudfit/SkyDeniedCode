@@ -146,7 +146,6 @@ def main():
              sys.path.insert(0, 'src')
 
         try:
-            # Import components from your model file 
             from flight_delay_model import (
                 FlightDataPreprocessor,
                 SimAMCNNMogrifierLSTM,
