@@ -1,0 +1,17 @@
+# Ignore Python bytecode cache directories
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environment directory
+t/
+data/report_carrier_top10.csv
+data/weather_predict_data.csv
+mlData/adaptedData/train_data.pkl
+mlData/processedDataTest/processed_flight_sequences_full.csv
+mlData/processedDataTest/train_set.csv
+data/report_carrier_top10.csv
+data/weather_predict_data.csv
+mlData/adaptedData/train_data.pkl
+mlData/processedDataTest/processed_flight_sequences_full.csv
+mlData/processedDataTest/train_set.csv
